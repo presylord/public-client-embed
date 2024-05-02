@@ -30,6 +30,14 @@ const Styles = () => {
                 margin-bottom: 1rem;
             }
 
+            .tierra-lista-container .advancedSearch {
+                display: flex;
+                flex-direction: column;
+                margin-bottom: 1rem;
+                width:100%;
+                align-items: flex-start;
+            }
+
             .tierra-lista-container .form-row {
                 display: flex;
                 flex-wrap: wrap;
@@ -211,11 +219,63 @@ const BasicSearch = ({ setTotal, setListings }) => {
 };
 
 const AdvancedSearch = ({ setTotal, setListings }) => {
-    const [filterRows, setFilterRows] = useState([{ field: 'Province', operator: 'is', value: '' }]);
+    const [filterRows, setFilterRows] = useState([{match:'all', filter: {field: 'Province', operator: 'is', value: '' }}]);
+    console.log(filterRows)
+    const advancedRow = ({row, index }) => {
+        return html`
+            <div key=${index} class="form-row">
+                <select
+                    class="form-select"
+                    value=${row.field}
+                    name="field"
+                    onChange=${(e) => handleFieldChange(index, e.target.name, e.target.value)}
+                >
+                    <option value="Province">Province</option>
+                    <option value="Municipality">Municipality</option>
+                    <option value="Barangay">Barangay</option>
+                    <option value="Street">Street</option>
+                </select>
+                <select
+                    class="form-select"
+                    value=${row.operator}
+                    name="operator"
+                    onChange=${(e) => handleFieldChange(index, e.target.name, e.target.value)}
+                >
+                    <option value="is">is</option>
+                </select>
+                <input
+                    class="form-input"
+                    value=${row.value}
+                    name="value"
+                    onChange=${(e) => handleFieldChange(index, e.target.name, e.target.value)}
+                />
+                <button
+                    type="button"
+                    onClick=${handleAddRow}
+                    class="form-button form-button-add"
+                >
+                    And
+                </button>
+                <button
+                        type="button"
+                        onClick=${() => handleRemoveRow(index)}
+                        class="form-button form-button-remove"
+                    >
+                        Remove
+                </button>
+                
+            </div>
+        `
+    }
 
     const handleAddRow = () => {
-        setFilterRows([...filterRows, { field: 'Province', operator: 'is', value: '' }]);
+        setFilterRows([...filterRows, {match:'all', filter: {field: 'Province', operator: 'is', value: '' }}]);
     };
+
+    const handleOrRow = () => {
+        setFilterRows([...filterRows, {match:'any', filter: {field: 'Province', operator: 'is', value: '' }}]);
+    };
+
 
     const handleRemoveRow = (index) => {
         const updatedRows = filterRows.filter((_, idx) => idx !== index);
@@ -248,53 +308,29 @@ const AdvancedSearch = ({ setTotal, setListings }) => {
 
     return html`
         <form class="form-container" onSubmit=${handleSubmit}>
-            ${filterRows.map((row, index) => html`
-                <div key=${index} class="form-row">
-                    <select
-                        class="form-select"
-                        value=${row.field}
-                        name="field"
-                        onChange=${(e) => handleFieldChange(index, e.target.name, e.target.value)}
-                    >
-                        <option value="Province">Province</option>
-                        <option value="Municipality">Municipality</option>
-                        <option value="Barangay">Barangay</option>
-                        <option value="Street">Street</option>
-                        <option value="Added on">Added on</option>
+            <div class="form-row">
+                <p>
+                    <span>Match</span>
+                    <select class="form-select" value="" name="all_any">
+                        <option value="all">all</option>
+                        <option value="any">any</option>
                     </select>
-                    <select
-                        class="form-select"
-                        value=${row.operator}
-                        name="operator"
-                        onChange=${(e) => handleFieldChange(index, e.target.name, e.target.value)}
-                    >
-                        <option value="is">is</option>
-                        <option value="is between" disabled=${row.field !== 'Added on'}>is between</option>
-                    </select>
-                    <input
-                        class="form-input"
-                        value=${row.value}
-                        name="value"
-                        onChange=${(e) => handleFieldChange(index, e.target.name, e.target.value)}
-                    />
-                    <button
+                    <span> of the following rules </span>
+                    ${filterRows.length == 0 && html`<button
                         type="button"
                         onClick=${handleAddRow}
                         class="form-button form-button-add"
                     >
-                        +
-                    </button>
-                    ${index > 0 && html`
-                        <button
-                            type="button"
-                            onClick=${() => handleRemoveRow(index)}
-                            class="form-button form-button-remove"
-                        >
-                            -
-                        </button>
-                    `}
-                </div>
-            `)}
+                        Add Rule
+                    </button>`}
+                </p>
+            </div>
+            <div class="advancedSearch">
+                ${filterRows.map((row, index) => html`
+                    <${advancedRow} row=${row} index=${index}/>
+                `)}
+                <!-- Modify advanced Row for Or Row -->
+            </div>
             <div class="form-submit">
                 <button
                     type="submit"
@@ -307,7 +343,7 @@ const AdvancedSearch = ({ setTotal, setListings }) => {
     `;
 };
 
-const clientBody = () => {
+const publicClient = () => {
     const [listings, setListings] = useState([]);
     const [total, setTotal] = useState(0);
 
@@ -346,4 +382,4 @@ const clientBody = () => {
     `;
 };
 
-render(html`<${clientBody} />`, document.getElementById('tierra-lista-embed'));
+render(html`<${publicClient} />`, document.getElementById('tierra-lista-embed'));
