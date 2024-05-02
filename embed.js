@@ -1,20 +1,18 @@
 import { html, render, useState, useEffect } from 'https://unpkg.com/htm@3.1.1/preact/standalone.module.js';
 
-document.querySelector("body").innerHTML += "<div id='tierra-lista-embed'></div>";
+// document.querySelector("body").innerHTML += "<div id='tierra-lista-embed'></div>";
 
 const Styles = () => {
     return html`
         <style>
-            .tierra-lista-container {
-                font-family: Arial, sans-serif;
-                font-size: 16px;
-                line-height: 1.5;
-            }
 
             .tierra-lista-container {
                 margin: 0 auto;
                 padding: 1rem;
-                max-width: 900px;
+                // max-width: 900px;
+                font-family: Arial, sans-serif;
+                font-size: 16px;
+                line-height: 1.5;
             }
 
             .tierra-lista-container .title {
@@ -45,9 +43,17 @@ const Styles = () => {
                 margin-bottom: 1rem;
             }
 
+            .tierra-lista-container .form-indent{
+                padding-left: 2rem;
+
+            }
+
+
 
             .tierra-lista-container .form-row > .form-input {
                 margin-right: 1rem;
+                width: 200px;
+
             }
 
             .tierra-lista-container .form-select,
@@ -86,6 +92,14 @@ const Styles = () => {
                 background-color: #bf1f1f;
             }
 
+            .tierra-lista-container .form-button-or {
+                background-color: #449506;
+            }
+
+            .tierra-lista-container .form-button-or:hover {
+                background-color: #408d05;
+            }
+
             .tierra-lista-container .form-button-remove:hover {
                 background-color: #9f0000;
             }
@@ -98,6 +112,8 @@ const Styles = () => {
 
             .tierra-lista-container .form-button-submit {
                 border-radius: 0.25rem;
+                margin: 0 5px;
+
             }
 
             .tierra-lista-container .result {
@@ -118,7 +134,7 @@ const Styles = () => {
                 border-radius: 1rem;
                 box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
                 margin: 1rem;
-                width:25%;
+                width:45%;
             }
 
             .tierra-lista-container .property-title {
@@ -147,7 +163,7 @@ const Styles = () => {
     `;
 };
 
-const BasicSearch = ({ setTotal, setListings }) => {
+const BasicSearch = ({ setToggleSearch, setTotal, setListings }) => {
     const [formData, setFormData] = useState({
         street: '',
         barangay: '',
@@ -208,22 +224,32 @@ const BasicSearch = ({ setTotal, setListings }) => {
                     class="form-input"
                 />
                 </div>
-                <button
-                    type="submit"
-                    class="form-button form-button-submit"
-                >
-                    Search Property
-                </button>
+                <div>
+                    <button
+                        type="submit"
+                        class="form-button form-button-submit"
+                    >
+                        Search Property
+                    </button>
+                    <button
+                        type="submit"
+                        class="form-button form-button-submit"
+                        onClick=${()=> setToggleSearch(true)}
+                    >
+                        Advanced Search
+                    </button>
+                
+                </div>
         </form>
     `;
 };
 
-const AdvancedSearch = ({ setTotal, setListings }) => {
-    const [filterRows, setFilterRows] = useState([{match:'all', filter: {field: 'Province', operator: 'is', value: '' }}]);
+const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
+    const [filterRows, setFilterRows] = useState([{match:'&', filter: [{field: 'Province', operator: 'is', value: '' }]}]);
     console.log(filterRows)
-    const advancedRow = ({row, index }) => {
+    const advancedRow = ({row, match, index, subIndex }) => {
         return html`
-            <div key=${index} class="form-row">
+            <div key=${index} class="form-row ${match == '&' ? '' :'form-indent' }" >
                 <select
                     class="form-select"
                     value=${row.field}
@@ -251,14 +277,21 @@ const AdvancedSearch = ({ setTotal, setListings }) => {
                 />
                 <button
                     type="button"
-                    onClick=${handleAddRow}
+                    onClick=${ filterRows[index].match == '|' ? ()=>handleAddInOr(index) : handleAddRow }
                     class="form-button form-button-add"
                 >
                     And
                 </button>
+                ${ filterRows[index].match == '&' && html`<button
+                    type="button"
+                    onClick=${handleOrRow}
+                    class="form-button form-button-or"
+                >
+                    Or
+                </button>`}
                 <button
                         type="button"
-                        onClick=${() => handleRemoveRow(index)}
+                        onClick=${ filterRows[index].match == '|' ? ()=>handleRemoveInOr(index, subIndex) : ()=>handleRemoveRow(index) }
                         class="form-button form-button-remove"
                     >
                         Remove
@@ -269,17 +302,52 @@ const AdvancedSearch = ({ setTotal, setListings }) => {
     }
 
     const handleAddRow = () => {
-        setFilterRows([...filterRows, {match:'all', filter: {field: 'Province', operator: 'is', value: '' }}]);
+        setFilterRows([...filterRows, {match:'&', filter: [{field: 'Province', operator: 'is', value: '' }]}]);
     };
 
+    
     const handleOrRow = () => {
-        setFilterRows([...filterRows, {match:'any', filter: {field: 'Province', operator: 'is', value: '' }}]);
+        setFilterRows([...filterRows, {match:'|', filter: [{field: 'Province', operator: 'is', value: '' },{field: 'Province', operator: 'is', value: '' }]}]);
     };
-
-
+    
     const handleRemoveRow = (index) => {
         const updatedRows = filterRows.filter((_, idx) => idx !== index);
         setFilterRows(updatedRows);
+    };
+
+    const handleAddInOr = (index) => {
+        const updatedFilterRows = [...filterRows];
+
+        // Update the filter in the copied array
+        updatedFilterRows.forEach((row, i) => {
+            if (i === index) {
+            row.filter.push({ field: 'Province', operator: 'is', value: '' });
+            }
+        });
+
+        // Set the state with the updated array
+        setFilterRows(updatedFilterRows);
+        
+    };
+
+    const handleRemoveInOr = (index, subIndex) => {
+        console.log(index, subIndex)
+        const updatedFilterRows = [...filterRows];
+
+        // Update the filter in the copied array
+        updatedFilterRows.forEach((row, i) => {
+            if (i === index) {
+                console.log(row.filter)
+                row.filter.filter((_, idx) => idx == subIndex)
+                console.log(row.filter)
+
+            }
+        });
+
+        // Set the state with the updated array
+        setFilterRows(updatedFilterRows);
+
+        
     };
 
     const handleFieldChange = (index, selectedField, selectedFieldValue) => {
@@ -306,6 +374,8 @@ const AdvancedSearch = ({ setTotal, setListings }) => {
         }
     };
 
+    
+
     return html`
         <form class="form-container" onSubmit=${handleSubmit}>
             <div class="form-row">
@@ -326,9 +396,14 @@ const AdvancedSearch = ({ setTotal, setListings }) => {
                 </p>
             </div>
             <div class="advancedSearch">
-                ${filterRows.map((row, index) => html`
-                    <${advancedRow} row=${row} index=${index}/>
-                `)}
+                ${filterRows.map((filters, index) => {
+                    const match = filters.match
+                    return filters?.filter.map((row,i)=> html`
+                        <${advancedRow} match=${match} row=${row} index=${index} subIndex=${i}/>
+                    `)
+                }
+                    
+                    )}
                 <!-- Modify advanced Row for Or Row -->
             </div>
             <div class="form-submit">
@@ -338,6 +413,19 @@ const AdvancedSearch = ({ setTotal, setListings }) => {
                 >
                     Search Property
                 </button>
+                <button
+                    type="button" onClick=${()=>setFilterRows([])}
+                    class="form-button form-button-submit"
+                >
+                    Reset Filters
+                </button>
+
+                <button
+                    type="button" onClick=${()=> setToggleSearch(false)}
+                    class="form-button form-button-submit"
+                >
+                    Basic Search
+                </button>
             </div>
         </form>
     `;
@@ -346,6 +434,7 @@ const AdvancedSearch = ({ setTotal, setListings }) => {
 const publicClient = () => {
     const [listings, setListings] = useState([]);
     const [total, setTotal] = useState(0);
+    const [toggleSearch, setToggleSearch] = useState(false);
 
     useEffect(() => {
         (async () => {
@@ -364,8 +453,8 @@ const publicClient = () => {
         <${Styles}/>
         <div class="tierra-lista-container">
             <h1 class="title">Tierra Lista Properties</h1>
-            <${BasicSearch} setTotal=${setTotal} setListings=${setListings} />
-            <${AdvancedSearch} setTotal=${setTotal} setListings=${setListings}/>
+            <${ !toggleSearch && BasicSearch} setToggleSearch=${setToggleSearch} setTotal=${setTotal} setListings=${setListings} />
+            <${ toggleSearch && AdvancedSearch} setToggleSearch=${setToggleSearch} setTotal=${setTotal} setListings=${setListings}/>
             <h3 class="result">Results found: ${total}</h3>
             <div class="properties">
                 ${listings.length > 0 && listings.map((property) => html`
