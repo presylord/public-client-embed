@@ -1,10 +1,15 @@
 import { html, render, useState, useEffect } from 'https://unpkg.com/htm@3.1.1/preact/standalone.module.js';
 
-// document.querySelector("body").innerHTML += "<div id='tierra-lista-embed'></div>";
+let container = document.createElement("div");
+container.id = "tierra-lista-embed"
+
+document.querySelector("#tierra-lista-script").after(container);
 
 const Styles = () => {
     return html`
         <style>
+
+
 
             .tierra-lista-container {
                 margin: 0 auto;
@@ -16,7 +21,7 @@ const Styles = () => {
             }
 
             .tierra-lista-container .title {
-                font-size: 2rem;
+                font-size: 3.25rem;
                 font-weight: 600;
                 margin-bottom: 1rem;
             }
@@ -41,6 +46,9 @@ const Styles = () => {
                 flex-wrap: wrap;
                 justify-content: center;
                 margin-bottom: 1rem;
+                width: 100%;
+                align-items: center;
+
             }
 
             .tierra-lista-container .form-indent{
@@ -63,6 +71,7 @@ const Styles = () => {
                 padding: 0.5rem 1rem;
                 outline: none;
                 margin: 0.25rem;
+                width: 25%;
             }
 
             .tierra-lista-container .form-button {
@@ -83,7 +92,8 @@ const Styles = () => {
             }
 
             .tierra-lista-container .form-button-add,
-            .tierra-lista-container .form-button-remove {
+            .tierra-lista-container .form-button-remove,
+            .tierra-lista-container .form-button-or  {
                 border-radius: 0;
                 margin-left: -1px;
             }
@@ -158,6 +168,15 @@ const Styles = () => {
 
             .tierra-lista-container .property:hover {
                 box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+            }
+
+
+            .tierra-lista-container .tw-10{
+                width: 10%
+            }
+
+            .tierra-lista-container .tw-25{
+                width: 25%
             }
         </style>
     `;
@@ -246,6 +265,8 @@ const BasicSearch = ({ setToggleSearch, setTotal, setListings }) => {
 
 const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
     const [filterRows, setFilterRows] = useState([{match:'&', filter: [{field: 'Province', operator: 'is', value: '' }]}]);
+    const [overAllCondition, setOverAllCondition] = useState('all')
+
     console.log(filterRows)
     const advancedRow = ({row, match, index, subIndex }) => {
         return html`
@@ -254,7 +275,7 @@ const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
                     class="form-select"
                     value=${row.field}
                     name="field"
-                    onChange=${(e) => handleFieldChange(index, e.target.name, e.target.value)}
+                    onChange=${(e) => handleFieldChange(index, subIndex, e.target.name, e.target.value)}
                 >
                     <option value="Province">Province</option>
                     <option value="Municipality">Municipality</option>
@@ -262,10 +283,10 @@ const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
                     <option value="Street">Street</option>
                 </select>
                 <select
-                    class="form-select"
+                    class="form-select tw-10"
                     value=${row.operator}
                     name="operator"
-                    onChange=${(e) => handleFieldChange(index, e.target.name, e.target.value)}
+                    onChange=${(e) => handleFieldChange(index, subIndex, e.target.name, e.target.value)}
                 >
                     <option value="is">is</option>
                 </select>
@@ -273,7 +294,8 @@ const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
                     class="form-input"
                     value=${row.value}
                     name="value"
-                    onChange=${(e) => handleFieldChange(index, e.target.name, e.target.value)}
+                    onChange=${(e) => handleFieldChange(index,subIndex, e.target.name, e.target.value)}
+                    required
                 />
                 <button
                     type="button"
@@ -331,39 +353,42 @@ const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
     };
 
     const handleRemoveInOr = (index, subIndex) => {
-        console.log(index, subIndex)
-        const updatedFilterRows = [...filterRows];
-
-        // Update the filter in the copied array
-        updatedFilterRows.forEach((row, i) => {
+        const updatedFilterRows = filterRows.map((row, i) => {
             if (i === index) {
-                console.log(row.filter)
-                row.filter.filter((_, idx) => idx == subIndex)
-                console.log(row.filter)
-
+                const updatedFilter = row.filter.filter((_, idx) => idx !== subIndex);
+                if (updatedFilter.length == 1){
+                    return {match:'&', filter: updatedFilter }
+                }
+                return { ...row, filter: updatedFilter };
             }
+            return row;
         });
-
-        // Set the state with the updated array
+    
         setFilterRows(updatedFilterRows);
-
-        
     };
 
-    const handleFieldChange = (index, selectedField, selectedFieldValue) => {
+    const handleFieldChange = (index, subIndex, selectedField, selectedFieldValue) => {
         const updatedRows = [...filterRows];
-        updatedRows[index][selectedField] = selectedFieldValue;
+        updatedRows[index].filter[subIndex][selectedField] = selectedFieldValue;
         setFilterRows(updatedRows);
+        console.log(index, subIndex)
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log(filterRows)
+        
+        const requestBody = {
+            overAllCondition: overAllCondition,
+            conditions: filterRows
+        }
+        
+        console.log(requestBody)
+
         try {
             const res = await fetch('https://api.presylord.com/v1/properties?action=advancedSearch', {
                 method: 'POST',
                 body: JSON.stringify({
-                    advancedSearch: filterRows
+                    advancedSearch: requestBody
                 })
             });
             const data = await res.json();
@@ -378,10 +403,10 @@ const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
 
     return html`
         <form class="form-container" onSubmit=${handleSubmit}>
-            <div class="form-row">
-                <p>
+            <div class="form-row" >
+                
                     <span>Match</span>
-                    <select class="form-select" value="" name="all_any">
+                    <select class="form-select tw-10" value=${overAllCondition} onChange=${(e)=> setOverAllCondition(e.target.value)} name="all_any">
                         <option value="all">all</option>
                         <option value="any">any</option>
                     </select>
@@ -393,7 +418,7 @@ const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
                     >
                         Add Rule
                     </button>`}
-                </p>
+                
             </div>
             <div class="advancedSearch">
                 ${filterRows.map((filters, index) => {
@@ -434,7 +459,7 @@ const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
 const publicClient = () => {
     const [listings, setListings] = useState([]);
     const [total, setTotal] = useState(0);
-    const [toggleSearch, setToggleSearch] = useState(false);
+    const [toggleSearch, setToggleSearch] = useState(true);
 
     useEffect(() => {
         (async () => {
