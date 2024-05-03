@@ -264,7 +264,7 @@ const BasicSearch = ({ setToggleSearch, setTotal, setListings }) => {
 };
 
 const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
-    const [filterRows, setFilterRows] = useState([{match:'&', filter: [{field: 'Province', operator: 'is', value: '' }]}]);
+    const [filterRows, setFilterRows] = useState([{match:'&', filter: [{field: 'Province', operator: 'is', value: '' },{field: 'Province', operator: 'is', value: '' }]}]);
     const [overAllCondition, setOverAllCondition] = useState('all')
 
     console.log(filterRows)
@@ -413,7 +413,7 @@ const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
                     <span> of the following rules </span>
                     ${filterRows.length == 0 && html`<button
                         type="button"
-                        onClick=${handleAddRow}
+                        onClick=${()=>setFilterRows([{match:'&', filter: [{field: 'Province', operator: 'is', value: '' }]}, {match:'&', filter: [{field: 'Province', operator: 'is', value: '' }]}])}
                         class="form-button form-button-add"
                     >
                         Add Rule
