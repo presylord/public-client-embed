@@ -275,7 +275,7 @@ const BasicSearch = ({ setToggleSearch, setTotal, setListings }) => {
 };
 
 const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
-    const [filterRows, setFilterRows] = useState([{match:'&', filter: [{field: 'Province', operator: 'is', value: '' },{field: 'Province', operator: 'is', value: '' }]}]);
+    const [filterRows, setFilterRows] = useState([{match:'&', filter: [{field: 'Province', operator: 'is', value: '' }]}]);
     const [overAllCondition, setOverAllCondition] = useState('all')
 
     console.log(filterRows)
@@ -300,6 +300,7 @@ const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
                     onChange=${(e) => handleFieldChange(index, subIndex, e.target.name, e.target.value)}
                 >
                     <option value="is">is</option>
+                    <option value="contains">contains</option>
                 </select>
                 <input
                     class="form-input"
@@ -416,12 +417,13 @@ const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
         <form class="form-container" onSubmit=${handleSubmit}>
             <div class="form-row" >
                 
-                    <span>Match</span>
-                    <select class="form-select tw-10" value=${overAllCondition} onChange=${(e)=> setOverAllCondition(e.target.value)} name="all_any">
-                        <option value="all">all</option>
-                        <option value="any">any</option>
-                    </select>
-                    <span style="margin-right: 1rem;"> of the following rules </span>
+                    ${filterRows.length > 1 && html`<span>Match</span>
+                        <select class="form-select tw-10" value=${overAllCondition} onChange=${(e)=> setOverAllCondition(e.target.value)} name="all_any">
+                            <option value="all">all</option>
+                            <option value="any">any</option>
+                        </select>
+                        <span style="margin-right: 1rem;"> of the following rules </span>`
+                    }
                     ${filterRows.length == 0 && html`<button
                         type="button"
                         onClick=${()=>setFilterRows([{match:'&', filter: [{field: 'Province', operator: 'is', value: '' }]}, {match:'&', filter: [{field: 'Province', operator: 'is', value: '' }]}])}
