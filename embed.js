@@ -472,8 +472,10 @@ const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
 const publicClient = () => {
     const [listings, setListings] = useState([]);
     const [total, setTotal] = useState(0);
+    const [firstId, setFirstId] = useState();
     const [lastId, setLastId] = useState();
     const [toggleSearch, setToggleSearch] = useState(false);
+    const [page, setPage] = useState(1);
 
     useEffect(() => {
         (async () => {
@@ -489,8 +491,40 @@ const publicClient = () => {
     }, []);
 
     useEffect(()=>{
+        setFirstId(listings[0]?.$id)
         setLastId(listings[listings.length - 1]?.$id)
     },[listings])
+
+    const loadNext = () =>{
+        (async () => {
+            try {
+                const res = await fetch(`https://api.presylord.com/v1/properties?next=${lastId}`);
+                const data = await res.json();
+                setListings(data.documents);
+                setTotal(data.total);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        })();
+        setPage(page+1)
+    }
+
+    const loadPrev = () =>{
+        (async () => {
+            try {
+                const res = await fetch(`https://api.presylord.com/v1/properties?prev=${firstId}`);
+                const data = await res.json();
+                setListings(data.documents);
+                setTotal(data.total);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        })();
+        setPage(page-1)
+
+    }
+
+    console.log(page)
 
     return html`
         <${Styles}/>
@@ -499,6 +533,8 @@ const publicClient = () => {
             <${ !toggleSearch && BasicSearch} setToggleSearch=${setToggleSearch} setTotal=${setTotal} setListings=${setListings} />
             <${ toggleSearch && AdvancedSearch} setToggleSearch=${setToggleSearch} setTotal=${setTotal} setListings=${setListings}/>
             <h3 class="result">Results found: ${total}</h3>
+            <button class="form-button" onClick=${loadPrev} disabled=${page == 1}>prev</button>
+            <button class="form-button" onClick=${loadNext}>next</button>
             <div class="properties">
                 ${listings.length > 0 && listings.map((property) => html`
                     <div key=${property.id} class="property">
