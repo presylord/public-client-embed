@@ -534,7 +534,8 @@ const publicClient = () => {
             <${ toggleSearch && AdvancedSearch} setToggleSearch=${setToggleSearch} setTotal=${setTotal} setListings=${setListings}/>
             <h3 class="result">Results found: ${total}</h3>
             <button class="form-button" onClick=${loadPrev} disabled=${page == 1}>prev</button>
-            <button class="form-button" onClick=${loadNext}>next</button>
+            <button class="form-button" onClick=${loadNext} disabled=${page == Math.ceil(total/listings.length)}>next</button>
+            <p>Not working on Search results yet</p>
             <div class="properties">
                 ${listings.length > 0 && listings.map((property) => html`
                     <div key=${property.id} class="property">
