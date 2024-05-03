@@ -426,7 +426,7 @@ const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
                     }
                     ${filterRows.length == 0 && html`<button
                         type="button"
-                        onClick=${()=>setFilterRows([{match:'&', filter: [{field: 'Province', operator: 'is', value: '' }]}, {match:'&', filter: [{field: 'Province', operator: 'is', value: '' }]}])}
+                        onClick=${()=>setFilterRows([{match:'&', filter: [{field: 'Province', operator: 'is', value: '' }]}])}
                         class="form-button form-button-add"
                     >
                         Add Rule
