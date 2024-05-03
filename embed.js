@@ -470,7 +470,7 @@ const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
 const publicClient = () => {
     const [listings, setListings] = useState([]);
     const [total, setTotal] = useState(0);
-    const [toggleSearch, setToggleSearch] = useState(true);
+    const [toggleSearch, setToggleSearch] = useState(false);
 
     useEffect(() => {
         (async () => {
