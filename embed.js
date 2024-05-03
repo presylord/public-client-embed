@@ -262,7 +262,7 @@ const BasicSearch = ({ setToggleSearch, setTotal, setListings }) => {
                         Search Property
                     </button>
                     <button
-                        type="submit"
+                        type="button"
                         class="form-button form-button-submit"
                         onClick=${()=> setToggleSearch(true)}
                     >
