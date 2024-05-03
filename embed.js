@@ -472,6 +472,7 @@ const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
 const publicClient = () => {
     const [listings, setListings] = useState([]);
     const [total, setTotal] = useState(0);
+    const [lastId, setLastId] = useState();
     const [toggleSearch, setToggleSearch] = useState(false);
 
     useEffect(() => {
@@ -486,6 +487,10 @@ const publicClient = () => {
             }
         })();
     }, []);
+
+    useEffect(()=>{
+        setLastId(listings[listings.length - 1]?.$id)
+    },[listings])
 
     return html`
         <${Styles}/>
