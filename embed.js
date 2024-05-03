@@ -369,7 +369,7 @@ const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
 
     const handleFieldChange = (index, subIndex, selectedField, selectedFieldValue) => {
         const updatedRows = [...filterRows];
-        updatedRows[index].filter[subIndex][selectedField] = selectedFieldValue;
+        updatedRows[index].filter[subIndex][selectedField] = selectedFieldValue.trim();
         setFilterRows(updatedRows);
         console.log(index, subIndex)
     };
@@ -410,7 +410,7 @@ const AdvancedSearch = ({ setToggleSearch, setTotal, setListings }) => {
                         <option value="all">all</option>
                         <option value="any">any</option>
                     </select>
-                    <span> of the following rules </span>
+                    <span style="margin-right: 1rem;"> of the following rules </span>
                     ${filterRows.length == 0 && html`<button
                         type="button"
                         onClick=${()=>setFilterRows([{match:'&', filter: [{field: 'Province', operator: 'is', value: '' }]}, {match:'&', filter: [{field: 'Province', operator: 'is', value: '' }]}])}
