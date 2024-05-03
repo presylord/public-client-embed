@@ -193,13 +193,8 @@ const Styles = () => {
     `;
 };
 
-const BasicSearch = ({ setToggleSearch, setTotal, setListings }) => {
-    const [formData, setFormData] = useState({
-        street: '',
-        barangay: '',
-        municipality: '',
-        province: ''
-    });
+const BasicSearch = ({ setToggleSearch, setTotal, setListings, formData, setFormData }) => {
+    
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -476,6 +471,12 @@ const publicClient = () => {
     const [lastId, setLastId] = useState();
     const [toggleSearch, setToggleSearch] = useState(false);
     const [page, setPage] = useState(1);
+    const [formData, setFormData] = useState({
+        street: '',
+        barangay: '',
+        municipality: '',
+        province: ''
+    });
 
     useEffect(() => {
         (async () => {
@@ -498,7 +499,11 @@ const publicClient = () => {
     const loadNext = () =>{
         (async () => {
             try {
-                const res = await fetch(`https://api.presylord.com/v1/properties?next=${lastId}`);
+                const res = await fetch(`https://api.presylord.com/v1/properties?next=${lastId}`,{
+                    method:'POST',
+                    body: JSON.stringify(formData)
+                }
+                );
                 const data = await res.json();
                 setListings(data.documents);
                 setTotal(data.total);
@@ -530,12 +535,12 @@ const publicClient = () => {
         <${Styles}/>
         <div class="tierra-lista-container">
             <h1 class="title">Tierra Lista Properties</h1>
-            <${ !toggleSearch && BasicSearch} setToggleSearch=${setToggleSearch} setTotal=${setTotal} setListings=${setListings} />
+            <${ !toggleSearch && BasicSearch} setToggleSearch=${setToggleSearch} setTotal=${setTotal} setListings=${setListings} formData=${formData} setFormData=${setFormData}/>
             <${ toggleSearch && AdvancedSearch} setToggleSearch=${setToggleSearch} setTotal=${setTotal} setListings=${setListings}/>
             <h3 class="result">Results found: ${total}</h3>
             <button class="form-button" onClick=${loadPrev} disabled=${page == 1}>prev</button>
             <button class="form-button" onClick=${loadNext} disabled=${page == Math.ceil(total/listings.length)}>next</button>
-            <p>Not working on Search results yet</p>
+            <p>Not working on Advanced Search results yet</p>
             <div class="properties">
                 ${listings.length > 0 && listings.map((property) => html`
                     <div key=${property.id} class="property">
