@@ -178,6 +178,17 @@ const Styles = () => {
             .tierra-lista-container .tw-25{
                 width: 25%
             }
+
+
+            @media only screen and (max-width: 600px) {
+                .tierra-lista-container .property {
+                    width: 80%;
+                }
+
+                .tierra-lista-container .form-submit {
+                    flex-wrap: wrap;
+                }
+            }
         </style>
     `;
 };
